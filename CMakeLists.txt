@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 4.1)
 project(expresc VERSION 0.1.0 LANGUAGES C)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(RELEASE_CFLAGS
         -O3 -funroll-loops -fno-strict-aliasing -fno-unsafe-math-optimizations
 )
@@ -20,22 +22,26 @@ option(EXPRESC_ENABLE_MARCH_NATIVE
         OFF)
 
 
-add_library(expresc STATIC src/expresc.c
+add_library(expresc STATIC
+        src/expresc.c
         src/parsing/lexer.c
         src/parsing/lexer.h
         src/parsing/parser.c
         src/parsing/parser.h)
 
+target_include_directories(expresc PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
 add_executable(expresc-cli
         src/repl/main.c
 )
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(expresc-cli PRIVATE expresc)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT error)
 if (ipo_supported)
     set_target_properties(expresc PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    set_target_properties(expresc-cli PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 endif ()
 
 if (EXPRESC_ENABLE_MARCH_NATIVE)
@@ -45,8 +51,14 @@ if (EXPRESC_ENABLE_MARCH_NATIVE)
     )
 endif ()
 
-# Apply flags by configuration
+# Apply flags by configuration — library
 target_compile_options(expresc PRIVATE
+        $<$<CONFIG:Release>:${RELEASE_CFLAGS}>
+        $<$<CONFIG:Debug>:${DEBUG_CFLAGS}>
+)
+
+# Apply flags by configuration — CLI executable
+target_compile_options(expresc-cli PRIVATE
         $<$<CONFIG:Release>:${RELEASE_CFLAGS}>
         $<$<CONFIG:Debug>:${DEBUG_CFLAGS}>
 )
@@ -57,7 +69,7 @@ target_compile_definitions(expresc PRIVATE
         $<$<CONFIG:Debug>:DEBUG>
 )
 
-# LTO: -flto often needs to be on the link step too
-target_link_options(expresc PRIVATE
+# LTO link flags on the executable (not the static library)
+target_link_options(expresc-cli PRIVATE
         $<$<CONFIG:Release>:-flto>
 )
