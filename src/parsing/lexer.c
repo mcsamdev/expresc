@@ -296,7 +296,7 @@ static const char* error_type_str(const tok_error_type err) {
 }
 
 // print for debugging
-char* sprint_tokens(const token* tokens, const size_t amount) {
+char* sprint_tokens(const token* tokens, const size_t max_amount) {
     if(tokens == nullptr) {
         return nullptr;
     }
@@ -308,10 +308,12 @@ char* sprint_tokens(const token* tokens, const size_t amount) {
     }
     buf[0] = '\0';
 
-    for(size_t i = 0; i < amount; i++) {
+    for(size_t i = 0; i < max_amount; i++) {
         const token* t = &tokens[i];
         char line[256];
         int written;
+
+        const bool is_terminal = t->type == TOKEN_EOF || t->error != ERR_NONE;
 
         if(t->error != ERR_NONE) {
             written = snprintf(line,
@@ -356,6 +358,9 @@ char* sprint_tokens(const token* tokens, const size_t amount) {
         }
 
         if(written < 0) {
+            if(is_terminal) {
+                break;
+            }
             continue;
         }
 
@@ -374,6 +379,10 @@ char* sprint_tokens(const token* tokens, const size_t amount) {
 
         memcpy(buf + used, line, line_len + 1);
         used += line_len;
+
+        if(is_terminal) {
+            break;
+        }
     }
 
     return buf;
