@@ -31,6 +31,7 @@ typedef enum {
     ERR_NONE = 0,
     ERR_UNRECOGNIZED_CHAR, // e.g., "5 @ 2" (@ is not an operator)
     ERR_INVALID_NUMBER, // e.g., "3.14.15" or "1.2e++3"
+    ERR_NUMBER_OUT_OF_RANGE, // overflow/underflow from strtod
 } tok_error_type;
 
 typedef struct {
@@ -46,5 +47,9 @@ typedef struct {
 } token;
 
 token* lex_expression(const char* expression, size_t length);
+// this is only for debugging/testing. not intended to be used in actual use of lib.
+char* sprint_tokens(const token* tokens, size_t amount);
+
+void free_tokens(token* tokens);
 
 #endif //EXPRESC_LEXER_H
