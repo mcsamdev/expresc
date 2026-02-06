@@ -21,7 +21,9 @@ option(EXPRESC_ENABLE_MARCH_NATIVE
 
 
 add_library(expresc STATIC src/expresc.c
-        src/repl/main.c)
+        src/repl/main.c
+        src/parsing/lexer.c
+        src/parsing/lexer.h)
 
 add_executable(expresc-cli
         src/repl/main.c
