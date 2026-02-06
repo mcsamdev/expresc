@@ -1,0 +1,35 @@
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  cert-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+
+  -clang-analyzer-cplusplus-*,
+  -modernize-use-auto,
+  -modernize-use-nullptr,
+  -modernize-use-override,
+  -modernize-use-trailing-return-type,
+  -modernize-use-default-member-init,
+
+  -readability-magic-numbers,
+  -readability-identifier-length,
+  -readability-function-cognitive-complexity,
+  -readability-named-parameter,
+
+  -*compatibility*
+  bugprone-misplaced-widening-cast
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: 'src/internal/.*'
+
+AnalyzeTemporaryDtors: false
+
+CheckOptions:
+  - key: bugprone-signed-char-misuse.CharTypedefNames
+    value: 'char,int8_t'
+  - key: readability-implicit-bool-conversion.AllowIntegerConditions
+    value: 'false'

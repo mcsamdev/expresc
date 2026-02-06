@@ -1,0 +1,120 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux / Unix
+*~
+.nfs*
+
+# Editor / IDE files
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+out/
+*.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+*.swm
+.Session.vim
+
+# Emacs
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CTestTestfile.cmake
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CMakeUserPresets.json
+
+# Build artifacts
+# Object files
+*.o
+*.obj
+*.lo
+
+# Libraries
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug / profiling / coverage
+*.dSYM/
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.lastbuildstate
+
+*.gcda
+*.gcno
+*.gcov
+*.lcov
+lcov.info
+coverage/
+
+*.profraw
+*.profdata
+vgcore.*
+callgrind.out.*
+perf.data*
+perf.data.old
+
+# Compiler intermediates
+# GCC / Clang
+*.i
+*.ii
+*.s
+
+# Tests / logs
+Testing/
+*.log
+*.xml
+
+# Documentation output
+docs/html/
+docs/latex/
+
+# Temp / cache
+tmp/
+temp/
+.cache/
+*.tmp
+
+# Generic build directories
+build/
+build-*/
