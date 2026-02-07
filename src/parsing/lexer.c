@@ -46,6 +46,53 @@ static operator_type get_operator(const char op) {
     }
 }
 
+// --- Helper: create a single-character token ---
+static token make_single_char_token(const token_type type, const char* start) {
+    return (token){
+        .error  = ERR_NONE,
+        .type   = type,
+        .start  = start,
+        .length = 1,
+    };
+}
+
+// --- Helper: create a single-character operator token ---
+static token make_operator_token(const char* start, const char op_char) {
+    return (token){
+        .error    = ERR_NONE,
+        .type     = TOKEN_OPERATOR,
+        .start    = start,
+        .length   = 1,
+        .value.op = get_operator(op_char),
+    };
+}
+
+// --- Helper: create an error token ---
+static token make_error_token(tok_error_type error, const char* start, uint32_t length) {
+    return (token){
+        .error  = error,
+        .start  = start,
+        .length = length,
+    };
+}
+
+// --- Helper: finalize with an error token at `count`, EOF at `count+1` ---
+static token_array finalize_with_error(token* tokens, const size_t count) {
+    // The error token is already written at tokens[count].
+    tokens[count + 1] = (token){.type = TOKEN_EOF};
+    return (token_array){.tokens = tokens, .amount = count + 1};
+}
+
+// --- Helper: finalize the token array, append EOF, shrink, and return ---
+static token_array finalize_token_array(token* tokens, const size_t count) {
+    tokens[count] = (token){.type = TOKEN_EOF};
+    token* shrunk = realloc(tokens, sizeof(token) * (count + 1));
+    if(shrunk != nullptr) {
+        tokens = shrunk;
+    }
+    return (token_array){.tokens = tokens, .amount = count};
+}
+
 // Returns the number of characters consumed from `expr + offset`.
 // Writes the resulting token into `out`.
 static size_t lex_number(const char* expr, const size_t offset, token* out) {
@@ -129,11 +176,7 @@ static size_t lex_identifier(const char* expr, const size_t offset, const size_t
 
     // Defensive: caller guarantees at least one alnum/_ char, but be safe
     if(consumed == 0) {
-        *out = (token){
-            .error  = ERR_UNRECOGNIZED_CHAR,
-            .start  = start,
-            .length = 1,
-        };
+        *out = make_error_token(ERR_UNRECOGNIZED_CHAR, start, 1);
         return 1;
     }
 
@@ -154,83 +197,50 @@ static size_t lex_identifier(const char* expr, const size_t offset, const size_t
     return consumed;
 }
 
-token* lex_expression(const char* expression, const size_t length) {
+token_array lex_expression(const char* expression, const size_t length) {
     // +1 for a sentinel TOKEN_EOF at the end
     token* tokens = malloc(sizeof(token) * (length + 1));
     if(tokens == nullptr) {
-        return nullptr;
+        return (token_array){.tokens = nullptr, .amount = 0};
     }
 
-    size_t token_index = 0;
+    size_t count = 0;
     for(size_t i = 0; i < length; i++) {
         const char current = expression[i];
+
         if(current == '(') {
-            tokens[token_index] = (token){
-                .error  = ERR_NONE,
-                .type   = TOKEN_LPAREN,
-                .start  = expression + i,
-                .length = 1,
-            };
-            token_index++;
+            tokens[count++] = make_single_char_token(TOKEN_LPAREN, expression + i);
         }
         else if(current == ')') {
-            tokens[token_index] = (token){
-                .error  = ERR_NONE,
-                .type   = TOKEN_RPAREN,
-                .start  = expression + i,
-                .length = 1,
-            };
-            token_index++;
+            tokens[count++] = make_single_char_token(TOKEN_RPAREN, expression + i);
         }
         else if(is_operator(current)) {
-            tokens[token_index] = (token){
-                .error    = ERR_NONE,
-                .type     = TOKEN_OPERATOR,
-                .start    = expression + i,
-                .length   = 1,
-                .value.op = get_operator(current),
-            };
-            token_index++;
+            tokens[count++] = make_operator_token(expression + i, current);
         }
         else if(isdigit((unsigned char)current) || current == '.') {
-            const size_t consumed = lex_number(expression, i, &tokens[token_index]);
-            if(tokens[token_index].error != ERR_NONE) {
-                // Error token is already written; return immediately
-                // so the caller can inspect it.
-                tokens[token_index + 1] = (token){.type = TOKEN_EOF};
-                return tokens;
+            const size_t consumed = lex_number(expression, i, &tokens[count]);
+            if(tokens[count].error != ERR_NONE) {
+                return finalize_with_error(tokens, count);
             }
-            token_index++;
-            i += consumed - 1; // -1 because the for-loop does i++
+            count++;
+            i += consumed - 1;
         }
         else if(isalpha((unsigned char)current) || current == '_') {
-            const size_t consumed = lex_identifier(expression, i, length, &tokens[token_index]);
-            if(tokens[token_index].error != ERR_NONE) {
-                tokens[token_index + 1] = (token){.type = TOKEN_EOF};
-                return tokens;
+            const size_t consumed = lex_identifier(expression, i, length, &tokens[count]);
+            if(tokens[count].error != ERR_NONE) {
+                return finalize_with_error(tokens, count);
             }
-            token_index++;
-            i += consumed - 1; // -1 because the for-loop does i++
+            count++;
+            i += consumed - 1;
         }
         else if(isspace((unsigned char)current)) {}
         else {
-            // Unrecognized character
-            tokens[token_index] = (token){
-                .error  = ERR_UNRECOGNIZED_CHAR,
-                .start  = expression + i,
-                .length = 1,
-            };
-            tokens[token_index + 1] = (token){.type = TOKEN_EOF};
-            return tokens;
+            tokens[count] = make_error_token(ERR_UNRECOGNIZED_CHAR, expression + i, 1);
+            return finalize_with_error(tokens, count);
         }
     }
 
-    // Sentinel: marks the end of the token array
-    tokens[token_index] = (token){.type = TOKEN_EOF};
-
-    // Shrink to actual size
-    token* shrunk = realloc(tokens, sizeof(token) * (token_index + 1));
-    return shrunk ? shrunk : tokens;
+    return finalize_token_array(tokens, count);
 }
 
 void free_tokens(token* tokens) {

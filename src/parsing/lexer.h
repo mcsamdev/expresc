@@ -46,7 +46,12 @@ typedef struct {
     } value;
 } token;
 
-token* lex_expression(const char* expression, size_t length);
+typedef struct {
+    token* tokens;
+    size_t amount;
+} token_array;
+
+token_array lex_expression(const char* expression, size_t length);
 // this is only for debugging/testing. not intended to be used in actual use of lib.
 char* sprint_tokens(const token* tokens, size_t max_amount);
 
