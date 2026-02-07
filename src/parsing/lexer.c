@@ -13,9 +13,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define STR_TEMP_BUF_SIZE 256
+#define STR_INIT_BUF_SIZE 256
 
-static bool is_operator(const char c) {
-    switch(c) {
+
+static bool is_operator(const char operator) {
+    switch(operator) {
         case '+':
         case '-':
         case '*':
@@ -28,8 +31,8 @@ static bool is_operator(const char c) {
 }
 
 // This should only be called once we know it is an operator via function above
-static operator_type get_operator(const char op) {
-    switch(op) {
+static operator_type get_operator(const char operator) {
+    switch(operator) {
         case '+':
             return OP_ADD;
         case '-':
@@ -271,8 +274,8 @@ static const char* token_type_str(const token_type type) {
 }
 
 // for sprint_tokens
-static const char* operator_type_str(const operator_type op) {
-    switch(op) {
+static const char* operator_type_str(const operator_type operator) {
+    switch(operator) {
         case OP_ADD:
             return "+";
         case OP_SUB:
@@ -309,7 +312,7 @@ char* sprint_tokens(const token* tokens, const size_t max_amount) {
     if(tokens == nullptr) {
         return nullptr;
     }
-    size_t capacity = 256;
+    size_t capacity = STR_INIT_BUF_SIZE;
     size_t used = 0;
     char* buf = malloc(capacity);
     if(buf == nullptr) {
@@ -318,38 +321,38 @@ char* sprint_tokens(const token* tokens, const size_t max_amount) {
     buf[0] = '\0';
 
     for(size_t i = 0; i < max_amount; i++) {
-        const token* t = &tokens[i];
-        char line[256];
+        const token* tok = &tokens[i];
+        char line[STR_TEMP_BUF_SIZE];
         int written;
 
-        const bool is_terminal = t->type == TOKEN_EOF || t->error != ERR_NONE;
+        const bool is_terminal = (tok->type == TOKEN_EOF || tok->error != ERR_NONE) != 0;
 
-        if(t->error != ERR_NONE) {
+        if(tok->error != ERR_NONE) {
             written = snprintf(line,
                                sizeof(line),
                                "[%zu] ERROR(%s)  \"%.*s\"\n",
                                i,
-                               error_type_str(t->error),
-                               (int)t->length,
-                               t->start);
+                               error_type_str(tok->error),
+                               (int)tok->length,
+                               tok->start);
         }
-        else if(t->type == TOKEN_NUMBER) {
+        else if(tok->type == TOKEN_NUMBER) {
             written = snprintf(line,
                                sizeof(line),
                                "[%zu] %-10s  %g\n",
                                i,
-                               token_type_str(t->type),
-                               t->value.number);
+                               token_type_str(tok->type),
+                               tok->value.number);
         }
-        else if(t->type == TOKEN_OPERATOR) {
+        else if(tok->type == TOKEN_OPERATOR) {
             written = snprintf(line,
                                sizeof(line),
                                "[%zu] %-10s  '%s'\n",
                                i,
-                               token_type_str(t->type),
-                               operator_type_str(t->value.op));
+                               token_type_str(tok->type),
+                               operator_type_str(tok->value.op));
         }
-        else if(t->type == TOKEN_EOF) {
+        else if(tok->type == TOKEN_EOF) {
             written = snprintf(line,
                                sizeof(line),
                                "[%zu] EOF\n",
@@ -361,9 +364,9 @@ char* sprint_tokens(const token* tokens, const size_t max_amount) {
                                sizeof(line),
                                "[%zu] %-10s  \"%.*s\"\n",
                                i,
-                               token_type_str(t->type),
-                               (int)t->length,
-                               t->start);
+                               token_type_str(tok->type),
+                               (int)tok->length,
+                               tok->start);
         }
 
         if(written < 0) {

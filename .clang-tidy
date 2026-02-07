@@ -20,7 +20,7 @@ Checks: >
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: 'src/*'
+HeaderFilterRegex: 'src/.*'
 
 CheckOptions:
   - key: readability-implicit-bool-conversion.AllowIntegerConditions
