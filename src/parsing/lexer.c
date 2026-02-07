@@ -186,11 +186,11 @@ static size_t lex_identifier(const char* expr, const size_t offset, const size_t
         peek++;
     }
 
-    const bool is_function = peek < total_length && expr[peek] == '(';
+    const bool is_function = (peek < total_length && expr[peek] == '(') != 0;
 
     *out = (token){
         .error  = ERR_NONE,
-        .type   = is_function ? TOKEN_FUNCTION : TOKEN_VARIABLE,
+        .type   = (int)is_function ? TOKEN_FUNCTION : TOKEN_VARIABLE,
         .start  = start,
         .length = (uint32_t)consumed,
     };
