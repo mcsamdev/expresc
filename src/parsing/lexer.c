@@ -199,6 +199,7 @@ static size_t lex_identifier(const char* expr, const size_t offset, const size_t
 
 token_array lex_expression(const char* expression, const size_t length) {
     // +1 for a sentinel TOKEN_EOF at the end
+    // this is almost always an overestimate but avoids allocation during lexing and gets shrunk at end anyways
     token* tokens = malloc(sizeof(token) * (length + 1));
     if(tokens == nullptr) {
         return (token_array){.tokens = nullptr, .amount = 0};
@@ -252,8 +253,6 @@ static const char* token_type_str(const token_type type) {
     switch(type) {
         case TOKEN_EOF:
             return "EOF";
-        case TOKEN_IDENTIFIER:
-            return "IDENTIFIER";
         case TOKEN_VARIABLE:
             return "VARIABLE";
         case TOKEN_NUMBER:

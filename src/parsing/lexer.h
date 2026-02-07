@@ -18,7 +18,6 @@ typedef enum {
 
 typedef enum {
     TOKEN_EOF = 0,
-    TOKEN_IDENTIFIER,
     TOKEN_VARIABLE,
     TOKEN_NUMBER,
     TOKEN_OPERATOR,
